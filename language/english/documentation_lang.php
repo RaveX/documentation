@@ -6,3 +6,6 @@
 	// Shortcuts
 	$lang['docs:shortcut:create'] = 'Create Document';
 
+	// Labels
+	$lang['docs:label:no_docs'] = 'No documentation or language directory found';
+

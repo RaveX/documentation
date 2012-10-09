@@ -17,7 +17,7 @@ class Module_Documentation extends Module {
 				'en' => 'Documentation'
 			),
 			'description' => array(
-				'en' => 'A documentation module for PyroCMS powered by enchanced markup'
+				'en' => 'Managing documentation the easy way, enhanced by extended Markdown'
 			),
 			'frontend' => TRUE,
 			'backend'  => TRUE,
