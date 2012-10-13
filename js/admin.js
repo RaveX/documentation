@@ -29,7 +29,7 @@ $(function(){
 				form.find('input[name=id]').val(data.id);
 				form.find('input[name=title]').val(data.title);
 				form.find('input[name=slug]').val(data.slug);
-				form.find('input[name=parent]').val(data.parent);
+				form.find('select[name=parent]').val(data.parent).trigger('liszt:updated');
 				form.find('input[name=keywords]').val(data.keywords);
 				form.find('input[name=description]').val(data.description);
 				btns.find('.edit').attr('href', '/admin/documentation/edit/'+data.id);

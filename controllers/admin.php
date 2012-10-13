@@ -53,6 +53,7 @@ class Admin extends Admin_Controller
 		// Variables
 		$this->data->controller =& $this;
 		$this->data->docs       =  $this->documentation_m->generate_doc_tree($this->_data);
+		$this->data->dropdown   =  $this->documentation_m->build_dropdown($this->_data);
 
 		// Build the page
 		$this->template->title(lang('docs:title'))
@@ -108,6 +109,9 @@ class Admin extends Admin_Controller
 			}
 
 		}
+
+		// Add dropdown
+		$this->data->dropdown = $this->documentation_m->build_dropdown($this->_data);
 
 		// Build the page
 		$this->template->title(lang('docs:title').' '.lang('docs:section:create'))
@@ -201,6 +205,11 @@ class Admin extends Admin_Controller
 			$this->template->title(lang('docs:title').' '.lang('docs:section:edit'))
 						   ->build('admin/edit', $this->data);
 
+		}
+		else
+		{
+			$this->session->set_flashdata('error', 'Error updating the documentation');
+			redirect('documentation');
 		}
 
 	}

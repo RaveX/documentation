@@ -1,7 +1,7 @@
 
 	<div class="one_half">
 		<section class="title">
-			<h4>Pages</h4>
+			<h4>Documents</h4>
 		</section>
 		<section class="item">
 <?php if( isset($docs) && !empty($docs) ): ?>
@@ -48,7 +48,7 @@
 					</li>
 					<li class="<?php echo alternator('', 'even'); ?>">
 						<label for="name">Parent</label>
-						<div class="input"><?php echo form_input('parent', set_value('parent', NULL), 'class="width-15"'); ?></div>
+						<div class="input"><?php echo $dropdown; ?></div>
 					</li>
 					<li class="<?php echo alternator('', 'even'); ?>">
 						<label for="name">Keywords</label>

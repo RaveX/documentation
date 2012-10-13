@@ -3,6 +3,93 @@
 class Documentation_m extends MY_Model
 {
 
+	public function build_breadcrumbs($doc, $data, &$template)
+	{
+
+		// Variables
+		$crumbs = array();
+		$url    = 'documentation/';
+
+		// Loop each doc back to the root
+		do {
+
+			$crumbs[$doc['slug']] = $doc['title'];
+			$key = ( $doc['parent'] - 1 );
+
+			if( isset($data[$key]) )
+			{
+				$doc = $data[( $doc['parent'] - 1 )];
+			}
+
+		} while( isset($doc['parent']) AND $doc['parent'] > 0 );
+
+		// Reverse
+		$crumbs = array_reverse($crumbs);
+
+		// Loop crumbs
+		foreach( $crumbs AS $slug => $title )
+		{
+			$template->set_breadcrumb($title, $url.$slug);
+			$url .= $slug.'/';
+		}
+
+	}
+
+	public function build_navigation($data, $current, $url = 'documentation/', $tree = '')
+	{
+
+		// Loop each document
+		foreach($data AS $doc)
+		{
+
+			// Variables
+			$class = '';
+
+			// Calculate class
+			if( in_array($doc['slug'], $current) AND $doc['slug'] == end($current) )
+			{
+				$class = ' class="current"';
+			}
+			else if( in_array($doc['slug'], $current) )
+			{
+				$class = ' class="has_current"';
+			}
+
+			$tree .= '<li'.$class.'>' . "\n";
+			$tree .= '  <a href="{{ url:base }}' . $url . $doc['slug'] . '">' . $doc['title'] . '</a>' . "\n";
+
+			if( isset($doc['children']) )
+			{
+				$tree .= '  <ul>' . "\n";
+				$tree  = $this->build_navigation($doc['children'], $current, $url.$doc['slug'].'/', $tree);
+				$tree .= '  </ul>' . "\n";
+				$tree .= '</li>' . "\n";
+			}
+
+			$tree .= '</li>' . "\n";
+
+		}
+
+		// Return HTML
+		return $tree;
+	}
+
+	public function build_dropdown($data, $select = NULL)
+	{
+
+		// Variables
+		$options = array(0 => 'Select Parent');
+
+		// Loop documents
+		foreach( $data AS $doc )
+		{
+			$options[$doc['id']] = $doc['title'];
+		}
+
+		// Build and return dropdown
+		return form_dropdown('parent', $options, $select);
+	}
+
 	public function get_directory()
 	{
 
@@ -66,6 +153,7 @@ class Documentation_m extends MY_Model
 
 	public function tree_builder($doc, $tree = '', $first = true)
 	{
+
 
 		// Variables
 		if( isset($doc['children']) )

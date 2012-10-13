@@ -16,7 +16,7 @@
 					</li>
 					<li class="<?php echo alternator('', 'even'); ?>">
 						<label for="name">Parent</label>
-						<div class="input"><?php echo form_input('parent', set_value('parent', ( isset($input['parent']) ? $input['parent'] : NULL )), 'class="width-15"'); ?></div>
+						<div class="input"><?php echo $dropdown; ?></div>
 					</li>
 					<li class="<?php echo alternator('', 'even'); ?>">
 						<label for="name">Keywords</label>
