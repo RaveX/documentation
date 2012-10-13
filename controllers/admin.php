@@ -15,11 +15,15 @@ class Admin extends Admin_Controller
 		$this->lang->load('documentation');
 		$this->load->model('documentation_m');
 		$this->load->library('form_validation');
+		$this->load->helper('markdown');
+
+		// Create data object
+		$this->data = new stdClass();
 
 		// Get current directory information and data
 		$this->directory = $this->documentation_m->get_directory();
 		$this->data_file = $this->directory.'_data';
-		$this->_data     = @json_decode(file_get_contents($this->data_file), true);
+		$this->_data     = json_decode(file_get_contents($this->data_file), true) or array();
 
 		// Check data is set
 		if( ! $this->_data && $this->uri->segment(3) != 'language' )
@@ -63,7 +67,8 @@ class Admin extends Admin_Controller
 		{
 
 			// Variables
-			$this->data->input = $_POST;
+			$status            = TRUE;
+			$this->data->input = $this->input->post();
 
 			// Set validation rules
 			$this->form_validation->set_rules($this->validation_rules);
@@ -73,21 +78,33 @@ class Admin extends Admin_Controller
 			{
 
 				// Add to data file
-				$input  = $this->input->post();
+				$input = $this->input->post();
+				$id    = ( count($this->_data) + 1 );
 				unset($input['btnAction']);
-				$data[] = array_merge(array('id' => ( count($this->_data) + 1 )), $input);
-				file_put_contents($this->data_file, json_encode($this->_data));
+				$this->_data[] = array_merge(array('id' => $id, 'order' => 0), $input);
+				file_put_contents($this->data_file, json_encode($this->_data)) or $status = FALSE;
 
 				// Create file
 				$file   = $this->directory.$input['slug'].'.md';
-				$handle = fopen($file, 'w');
+				$handle = fopen($file, 'w') or $status = FALSE;
 				fclose($handle);
 				chmod($file, 0777);
 
 				// Redirect
-				$this->session->set_flashdata('success', 'New documentation created successfully');
-				redirect('admin/documentation');
+				if( $status )
+				{
+					$this->session->set_flashdata('success', 'New documentation created successfully');
+					redirect('admin/documentation');
+				}
 
+			}
+
+			// Redirect
+			if( ! $status )
+			{
+				// Redirect
+				$this->session->set_flashdata('error', 'There was an error creating the documentation');
+				redirect('admin/documentation/create');
 			}
 
 		}
@@ -98,10 +115,93 @@ class Admin extends Admin_Controller
 
 	}
 
+	public function update()
+	{
+
+		// Set validation rules
+		$this->form_validation->set_rules($this->validation_rules);
+
+		// Run validation
+		if( $this->form_validation->run() )
+		{
+
+			// Variables
+			$input = $this->input->post();
+			unset($input['btnAction']);
+
+			// Loop data to find array
+			foreach( $this->_data AS &$doc )
+			{
+				// Find correct file
+				if( $doc['id'] == $input['id'] )
+				{
+					// Rename file
+					if( $doc['slug'] != $input['slug'] )
+					{
+						rename($this->directory.$doc['slug'].'.md', $this->directory.$input['slug'].'.md');
+					}
+
+					// Update array
+					$doc = array_merge($doc, $input);
+					break;
+				}
+			}
+
+			// Write to file
+			file_put_contents($this->data_file, json_encode($this->_data));
+
+			// Flashdata
+			$this->session->set_flashdata('success', 'Document updated successfully');
+
+		}
+		else
+		{
+			// Flashdata
+			$this->session->set_flashdata('error', 'Error updating the document');
+			
+		}
+
+		// Redirect
+		redirect('admin/documentation');
+	}
+
 	public function edit($id)
 	{
 
+		// Variables
+		$document = array();
 
+		// Get data
+		foreach( $this->_data AS $doc )
+		{
+			if( $doc['id'] == $id )
+			{
+				$document = $doc;
+				break;
+			}
+		}
+
+		// Check for post
+		if( $this->input->post('btnAction') == 'update' )
+		{
+			file_put_contents($this->directory.$document['slug'].'.md', $this->input->post('document'));
+			$this->session->set_flashdata('success', 'Document updated successfully');
+		}
+
+		// Check document
+		if( ! empty($document) )
+		{
+
+			// Assign data
+			$this->data->title    = $document['title'];
+			$this->data->document = file_get_contents($this->directory.$document['slug'].'.md');
+			$this->data->preview  = Markdown($this->data->document);
+
+			// Build the page
+			$this->template->title(lang('docs:title').' '.lang('docs:section:edit'))
+						   ->build('admin/edit', $this->data);
+
+		}
 
 	}
 
@@ -119,29 +219,67 @@ class Admin extends Admin_Controller
 		$order		= $this->input->post('order');
 		$data		= $this->input->post('data');
 		$root_docs	= isset($data['root_docs']) ? $data['root_docs'] : array();
+		$keys       = array();
 
 		// Check order is valid
 		if( is_array($order) )
 		{
 
 			// Unset all category relationships
-			foreach( $this->_data AS &$doc )
+			foreach( $this->_data AS $key => &$doc )
 			{
 				$doc['parent'] = 0;
+				$id            = str_replace('doc_', '', $doc['id']);
+				$keys[$id]     = $key;
 			}
 
-						foreach( $order as $i => $cat )
+			// Loop each document
+			foreach( $order AS $i => $item )
 			{
 
+				// Variables
+				$id  = str_replace('doc_', '', $item['id']);
+				$key = $keys[$id];
+
+				// Update array
+				$this->_data[$key]['order'] = $i;
+
+				// Update children
+				$this->documentation_m->set_children($item, $keys, $this->_data);
+
+			}
+
+			// Write to file
+			file_put_contents($this->data_file, json_encode($this->_data));
 		}
 
 	}
 
-	public function preview($id)
+	public function details($id)
 	{
 
+		// Find required file
+		foreach( $this->_data AS $doc )
+		{
+			if( $doc['id'] == $id )
+			{
+				echo json_encode($doc);
+				exit();
+			}
+		}
 
+		// Otherwise
+		echo '[]';
+		exit();
+	}
 
+	public function preview()
+	{
+		if( $this->input->post('document') )
+		{
+			echo Markdown($this->input->post('document'));
+			exit();
+		}
 	}
 
 }

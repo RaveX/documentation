@@ -74,9 +74,9 @@ class Documentation_m extends MY_Model
 			foreach($doc['children'] as $doc)
 			{
 
-				$tree .= '<li id="cat_' . $doc['id'] . '">' . "\n";
+				$tree .= '<li id="doc_' . $doc['id'] . '">' . "\n";
 				$tree .= '  <div>' . "\n";
-				$tree .= '    <a href="{{ url:base }}documentation/' . $doc['slug'] . '" rel="' . $doc['id'] . '">' . $doc['title'] . '</a>' . "\n";
+				$tree .= '    <a href="documentation/' . $doc['slug'] . '" rel="' . $doc['id'] . '">' . $doc['title'] . '</a>' . "\n";
 				$tree .= '  </div>' . "\n";
 
 				if( isset($doc['children']) )
@@ -103,6 +103,36 @@ class Documentation_m extends MY_Model
 			echo $tree;
 		}
 
+	}
+
+	public function set_children($doc, $keys, &$docs)
+	{
+		if( isset($doc['children']) )
+		{
+			foreach( $doc['children'] as $i => $child )
+			{
+
+				// Variables
+				$id     = str_replace('doc_', '', $child['id']);
+				$parent = str_replace('doc_', '', $doc['id']);
+				$key    = $keys[$id];
+				
+				// Check parent
+				if( $id != $parent )
+				{
+					// Update order
+					$docs[$key]['order']  = $i;
+					$docs[$key]['parent'] = $parent;
+				}
+				
+				//repeat as long as there are children
+				if( isset($child['children']) )
+				{
+					$this->set_children($child, $keys, $docs);
+				}
+
+			}
+		}
 	}
 
 }

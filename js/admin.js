@@ -3,7 +3,7 @@ $(function(){
 	$("#tabs").tabs().tabs("select", '#generaloptions');
 	
 	$item_list	= $('ul.sortable');
-	$url		= 'admin/firesale/documentation/order';
+	$url		= 'admin/documentation/order';
 	$cookie		= 'open_docs';
 	
 	$details 	= $('div#documentation-sort');
@@ -21,9 +21,21 @@ $(function(){
 		$a.addClass('selected');
 		$details_id.val(doc_id);
 		
-		$.getJSON(SITE_URL + 'admin/documentation/ajax_details/' + $details_id.val(), function(data) {
-
-
+		$.getJSON(SITE_URL + 'admin/documentation/details/' + $details_id.val(), function(data) {
+			if( typeof data.id != 'undefined' )
+			{
+				var form = $('.one_half.last fieldset');
+				var btns = $('.one_half.last .buttons');
+				form.find('input[name=id]').val(data.id);
+				form.find('input[name=title]').val(data.title);
+				form.find('input[name=slug]').val(data.slug);
+				form.find('input[name=parent]').val(data.parent);
+				form.find('input[name=keywords]').val(data.keywords);
+				form.find('input[name=description]').val(data.description);
+				btns.find('.edit').attr('href', '/admin/documentation/edit/'+data.id);
+				form.show();
+				btns.show();
+			}
 		});
 		
 		return false;
@@ -48,5 +60,19 @@ $(function(){
 	pyro.sort_tree($item_list, $url, $cookie, data_callback, post_sort_callback);
 	
 	pyro.generate_slug($('input[name=title]'), $('input[name=slug]'), '-');
+
+	if( $('textarea[name=document]').size() > 0 )
+	{
+		var timer;
+		$('textarea[name=document]').bind('keyup keydown delete paste change', function() {
+			clearTimeout(timer);
+			var doc = $(this).val();
+			timer = setTimeout(function() {
+				$.post('/admin/documentation/preview', {document: doc}, function(data) {
+					$('.preview').html(data);
+				});
+			}, 200);
+		});
+	}
 	
 });

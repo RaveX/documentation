@@ -17,7 +17,7 @@ class Module_Documentation extends Module {
 				'en' => 'Documentation'
 			),
 			'description' => array(
-				'en' => 'Managing documentation the easy way, enhanced by extended Markdown'
+				'en' => 'Document ALL THE THINGS -o/'
 			),
 			'frontend' => TRUE,
 			'backend'  => TRUE,
