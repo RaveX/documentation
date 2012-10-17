@@ -1126,23 +1126,8 @@ class Markdown_Parser {
 		# trim leading newlines and trailing newlines
 		$codeblock = preg_replace('/\A\n+|\n+\z/', '', $codeblock);
 
-		$codeblock = "<pre>" . $this->_phpSyntax($codeblock) . "</pre>";
+		$codeblock = "<pre><code>" . $codeblock . "</code></pre>";
 		return "\n\n".$this->hashBlock($codeblock)."\n\n";
-	}
-
-	function _phpSyntax($code)
-	{
-
-		// Format string for processing
-		$code = trim($code);
-		$code = ( substr($code, 0, 5) != '<?php' ? '<?php ' . $code : $code );
-
-		// Colour it
-		$code = highlight_string($code, true);
-		$code = str_replace('&lt;?php&nbsp;', '', $code);
-
-		// Return it
-		return $code;
 	}
 
 	function makeCodeSpan($code) {
@@ -1152,7 +1137,6 @@ class Markdown_Parser {
 		$code = htmlspecialchars(trim($code), ENT_NOQUOTES);
 		return $this->hashPart("<code>$code</code>");
 	}
-
 
 	var $em_relist = array(
 		''  => '(?:(?<!\*)\*(?!\*)|(?<!_)_(?!_))(?=\S|$)(?![\.,:;]\s)',

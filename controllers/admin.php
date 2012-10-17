@@ -186,9 +186,10 @@ class Admin extends Admin_Controller
 		}
 
 		// Check for post
-		if( $this->input->post('btnAction') == 'update' )
+		if( $this->input->post('document') )
 		{
-			file_put_contents($this->directory.$document['slug'].'.md', $this->input->post('document'));
+			$string = str_replace('{tab}', "	", $_POST['document']);
+			file_put_contents($this->directory.$document['slug'].'.md', $string);
 			$this->session->set_flashdata('success', 'Document updated successfully');
 		}
 

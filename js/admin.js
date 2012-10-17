@@ -1,5 +1,32 @@
 $(function(){
 
+	$("textarea").keydown(function(e) {
+	    if(e.keyCode === 9) { // tab was pressed
+	        // get caret position/selection
+	        var start = this.selectionStart;
+	        var end = this.selectionEnd;
+
+	        var $this = $(this);
+	        var value = $this.val();
+
+	        // set textarea value to: text before caret + tab + text after caret
+	        $this.val(value.substring(0, start)
+	                    + "\t"
+	                    + value.substring(end));
+
+	        // put caret at right position again (add one for the tab)
+	        this.selectionStart = this.selectionEnd = start + 1;
+
+	        // prevent the focus lose
+	        e.preventDefault();
+	    }
+	});
+
+	$('form').submit(function(e) {
+		var obj = $('textarea[name=document]');
+		obj.val(obj.val().replace(/\t/g, '{tab}'));
+	});
+
 	$("#tabs").tabs().tabs("select", '#generaloptions');
 	
 	$item_list	= $('ul.sortable');
@@ -17,7 +44,7 @@ $(function(){
 			
 		doc_id		= $a.attr('rel');
 		doc_title 	= $a.text();
-		$('#documentatio-sort a').removeClass('selected');
+		$('#documentation-sort a').removeClass('selected');
 		$a.addClass('selected');
 		$details_id.val(doc_id);
 		
