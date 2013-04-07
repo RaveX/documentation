@@ -83,7 +83,8 @@ class Admin extends Admin_Controller
 				$id    = ( count($this->_data) + 1 );
 				unset($input['btnAction']);
 				$this->_data[] = array_merge(array('id' => $id, 'order' => 0), $input);
-				file_put_contents($this->data_file, json_encode($this->_data)) or $status = FALSE;
+				file_put_contents($this->data_file, 
+json_encode($this->_data, JSON_PRETTY_PRINT)) or $status = FALSE;
 
 				// Create file
 				$file   = $this->directory.$input['slug'].'.md';
